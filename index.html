@@ -89,7 +89,7 @@
     }
 
     .note-validation-message {
-      color: red;
+      color: yellow;
       font-size: 12px;
       margin-top: 5px;
     }
@@ -141,13 +141,13 @@
         }
 
         // Add a new note when the Enter key is pressed
-        $('#note-input').keypress(function(event) {
+        $('#note-input, #category-input').keypress(function(event) {
           if (event.which === 13) {
-            const noteText = $(this).val().trim();
+            const noteText = $(this).val().trim() !== ''?$(this).val().trim():$('#note-input').val();
             const category = $('#category-input').val().trim();
             const fontColor = $('.color-palette .color.selected').css('background-color');
 
-            if (noteText !== '') {
+            if (noteText !== '' || $('#note-input').val()!== '') {
               const note = {
                 text: noteText,
                 completed: false,
