@@ -143,11 +143,11 @@
         // Add a new note when the Enter key is pressed
         $('#note-input, #category-input').keypress(function(event) {
           if (event.which === 13) {
-            const noteText = $(this).val().trim() !== ''?$(this).val().trim():$('#note-input').val();
+            const noteText = ($(this).val().trim() !== '' && $(this).val().trim()!==$('#category-input').val())?$(this).val().trim():$('#note-input').val();
             const category = $('#category-input').val().trim();
             const fontColor = $('.color-palette .color.selected').css('background-color');
 
-            if (noteText !== '' || $('#note-input').val()!== '') {
+            if (noteText !== '') {
               const note = {
                 text: noteText,
                 completed: false,
