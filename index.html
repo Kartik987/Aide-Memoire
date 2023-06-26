@@ -210,14 +210,12 @@
 		  }
         });
 		  $('#notes-list').on('click', '.btn-copy', function(e) {
-		  if(!$(this).parent().hasClass('completed')){
 		              e.stopPropagation();
 					  const index = $(this).parent().data('index');
 					  const noteText = notes[index].text;
 					  copyToClipboard(noteText);
 					  setTooltip('Copied!',$(this).attr('class').split(' ')[3]);
 					  hideTooltip($(this).attr('class').split(' ')[3]);
-		  }
 
         });
 
@@ -298,14 +296,12 @@
             if (note.completed) {
               listItem.addClass('completed');
 			  content.addClass('taskchecked');
-			  copyButton.addClass('taskchecked');
 			  toggleImportantBtn.addClass('taskchecked');
 			  categoryLabel.addClass('taskchecked');
               content.attr('disabled', true);
             }
 			else{
 			content.removeClass('taskchecked');
-			  copyButton.removeClass('taskchecked');
 			  toggleImportantBtn.removeClass('taskchecked');
 			categoryLabel.removeClass('taskchecked');
 			}
