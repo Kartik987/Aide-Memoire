@@ -285,7 +285,7 @@
             const toggleImportantBtn = $('<span>').addClass('btn-toggle-important').html('(&#x2605;)');
             const timestamp = $('<span>').addClass('note-timestamp').text(note.timestamp).css('color','purple');
 			const doneTask = $('<span>').addClass('done-Task').text('✅');
-            var categoryLabel= '';
+            let categoryLabel= $('<span>').addClass('dummy');
             if (note.important) {
               listItem.append($('<span style="padding-right:14px">').addClass('important-label').text('‼️ 😡 😈'));
             }
