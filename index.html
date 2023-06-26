@@ -22,8 +22,7 @@
       margin-top: 20px;
     }
 
-    .list-group-item.completed {
-      text-decoration: line-through;
+    .list-group-item.completed{
       background-color: #f8f9fa;
     }
 
@@ -72,12 +71,8 @@
     }
 
     .completed {
-      background-color: #f8f9fa !important;
-      color: #868e96;
-    }
-
-    .completed .note-content {
-      text-decoration: line-through;
+      background-color:  #95DEE3 !important;
+      color: #004B8D;
     }
 
     .note-actions {
@@ -87,24 +82,46 @@
     .list-group-item:hover .note-actions {
       display: inline-block;
     }
+	
+	.taskchecked{
+	text-decoration:line-through;
+	text-decoration-color : #F2552C;
+	text-decoration-thickness: 2px;
+	}
 
     .note-validation-message {
       color: yellow;
       font-size: 12px;
       margin-top: 5px;
     }
-
+	.btn-toggle-important{
+	padding-right:20px;
+	padding-left:20px;
+	}
     .list-group-item:hover {
       cursor: pointer;
     }
-
+	.btn-copy{
+		padding-right:20px;
+	padding-left:20px;
+	}
+	.mrk-Done{
+	margin-left:30px;
+	font-size: 8px;
+	}
+	.done-Task{
+	margin-left:50px;
+	}
     .important-label {
       color: red;
       font-weight: bold;
       margin-left: 10px;
     }
+	.pending{
+	  border-color:red;
+	}.badge{color:Orange}
 	 body {
-         background-color: rgb(42, 111, 104);
+         background-color: rgb(0, 68, 102);
 
       }
   </style>
@@ -112,6 +129,8 @@
 
 <body>
   <div class="container">
+  <a href="#">TasksPending: <span class="badge pendcount"></span></a><br>
+   <a href="#">Tasks Completed: <span class="badge donecount"></span></a><br>
     <h1 style="color:rgb(224, 224, 235)">Aide-Memoire</h1>
     <div class="form-group">
       <input type="text" id="note-input" class="form-control" placeholder="Enter your task...">
@@ -127,14 +146,13 @@
       <input type="text" id="category-input" class="form-control" placeholder="Enter category...">
     </div>
     <ul id="notes-list" class="list-group"></ul>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/3.4.0/js/bootstrap-colorpicker.min.js"></script>
     <script>
       $(document).ready(function() {
         let notes = [];
-
         if (localStorage.getItem('notes')) {
           notes = JSON.parse(localStorage.getItem('notes'));
           renderNotes();
@@ -173,8 +191,9 @@
         });
 
         // Update note completion or disable when clicked
-        $('#notes-list').on('click', '.list-group-item', function() {
-          const index = $(this).data('index');
+        $('#notes-list').on('click', '.mrk-Done', function() {
+          const index = $(this).parent().data('index');
+		  console.log($(this).attr('class'));
           notes[index].completed = !notes[index].completed;
           saveNotes();
           renderNotes();
@@ -182,11 +201,24 @@
 
         // Toggle note importance when important icon is clicked
         $('#notes-list').on('click', '.btn-toggle-important', function(e) {
+		 if(!$(this).parent().hasClass('completed')){
           e.stopPropagation();
           const index = $(this).parent().data('index');
           notes[index].important = !notes[index].important;
           saveNotes();
           renderNotes();
+		  }
+        });
+		  $('#notes-list').on('click', '.btn-copy', function(e) {
+		  if(!$(this).parent().hasClass('completed')){
+		              e.stopPropagation();
+					  const index = $(this).parent().data('index');
+					  const noteText = notes[index].text;
+					  copyToClipboard(noteText);
+					  setTooltip('Copied!',$(this).attr('class').split(' ')[3]);
+					  hideTooltip($(this).attr('class').split(' ')[3]);
+		  }
+
         });
 
         // Delete note when trash button is clicked
@@ -197,49 +229,109 @@
           saveNotes();
           renderNotes();
         });
-
         // Select color from the color palette
         $('.color-palette .color').click(function() {
           $('.color-palette .color').removeClass('selected');
           $(this).addClass('selected');
         });
+		
+		// Clipboard
+		function setTooltip(message,elemClass) {
+		  $('.'+elemClass).tooltip('hide')
+			.attr('data-original-title', message)
+			.tooltip('show');
+		}
+
+		function hideTooltip(elemClass) {
+		  setTimeout(function() {
+			$('.'+elemClass).tooltip('hide');
+            $('.'+elemClass).attr('data-original-title', '');
+		  }, 500);
+
+		}
 
         // Save notes to local storage
         function saveNotes() {
           localStorage.setItem('notes', JSON.stringify(notes));
         }
-
+		
+		function copyToClipboard(text) {
+		  const textarea = document.createElement('textarea');
+		  textarea.value = text;
+		  textarea.style.position = 'fixed';
+		  document.body.appendChild(textarea);
+		  textarea.focus();
+		  textarea.select();
+		  try {
+			document.execCommand('copy');
+			textarea.blur();
+			document.body.removeChild(textarea);
+		  } catch (error) {
+			console.error('Failed to copy text to clipboard:', error);
+		  }
+		}
         // Render the notes list
         function renderNotes() {
           const notesList = $('#notes-list');
           notesList.empty();
-
+          let pendingCount = 0, doneCount = 0;
           for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
             const listItem = $('<li>').addClass('list-group-item').attr('data-index', i);
             const content = $('<span>').addClass('note-content').text(note.text).css('color', note.fontColor);
+			const copyButton = $('<i>').addClass('fa fa-copy btn-copy cpybtn'+i).text('📄');
+			const markdone = $('<span>').addClass('btn btn-light mrk-Done').text('Pending');
             const trashBtn = $('<span>').addClass('btn-trash').html('&times;');
-            const toggleImportantBtn = $('<span>').addClass('btn-toggle-important').html('&#x2605;');
-            const timestamp = $('<span>').addClass('note-timestamp').text(note.timestamp);
-
-            if (note.completed) {
-              listItem.addClass('completed');
-              content.attr('disabled', true);
-            }
-
+            const toggleImportantBtn = $('<span>').addClass('btn-toggle-important').html('(&#x2605;)');
+            const timestamp = $('<span>').addClass('note-timestamp').text(note.timestamp).css('color','purple');
+			const doneTask = $('<span>').addClass('done-Task').text('✅');
+            let categoryLabel= '';
             if (note.important) {
-              listItem.append($('<span style="padding-right:14px">').addClass('important-label').text('❗😨'));
+              listItem.append($('<span style="padding-right:14px">').addClass('important-label').text('‼️ 😡 😈'));
             }
 
             if (note.category !== '') {
-              const categoryLabel = $('<span padding-right:18px>').text(' Category: (' + note.category + ') | Task: ').css('color', note.fontColor);
+               categoryLabel = $('<span padding-right:18px>').text(' Category: (' + note.category + ') | Task: ').css('color', note.fontColor);
               listItem.append(categoryLabel);
             }
+						
+            if (note.completed) {
+              listItem.addClass('completed');
+			  content.addClass('taskchecked');
+			  copyButton.addClass('taskchecked');
+			  toggleImportantBtn.addClass('taskchecked');
+			  categoryLabel.addClass('taskchecked');
+              content.attr('disabled', true);
+            }
+			else{
+			content.removeClass('taskchecked');
+			  copyButton.removeClass('taskchecked');
+			  toggleImportantBtn.removeClass('taskchecked');
+			  categoryLabel.removeClass('taskchecked');
+			}
 
-            listItem.append(content, toggleImportantBtn, trashBtn, timestamp);
+            if(note.completed)
+				listItem.append(content, toggleImportantBtn,trashBtn, copyButton, timestamp, markdone, doneTask);
+			else
+				listItem.append(content, toggleImportantBtn,trashBtn, copyButton,timestamp, markdone)
             notesList.prepend(listItem);
           }
-        }
+        
+		$('.note-content').each(function(){
+		if($(this).attr('disabled')){
+				$(this).next().next().next().next().next().css('background-color','#00A591');
+					$(this).next().next().next().next().next().css('color','white')
+		        $(this).next().next().next().next().next().text('Done');
+				doneCount++;
+		}else{
+		$(this).next().next().next().next().next().addClass('pending');
+		pendingCount++;
+		}
+		});
+		
+		$('.pendcount').text(pendingCount);
+		$('.donecount').text(doneCount);
+		}
       });
     </script>
   </div>
